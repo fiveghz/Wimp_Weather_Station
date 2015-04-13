@@ -348,10 +348,10 @@ device.on("postToInternet", function(dataString) {
     if (enable_wunderground) {
 	    local request = http.post(bigString, {}, "");
 	    local response = request.sendsync();
+		server.log("Wunderground response = " + response.body);
     } else {
     	server.log("Push to Wunderground disabled");
     }
-    server.log("Wunderground response = " + response.body);
     server.log(batt_lvl + " " + light_lvl);
 
     //Get the local time that this measurement was taken
@@ -392,10 +392,10 @@ device.on("postToInternet", function(dataString) {
     if (enable_privateDB) {
 	    local request = http.get(bigString);
 	    local response = request.sendsync();
+		server.log("Private DB response = " + response.body);
 	  } else {
 	  	server.log("Push to private DB disabled");
 	  }
-    server.log("Private DB response = " + response.body);
 
     //Check to see if we need to send a midnight reset
     checkMidnight(1);
