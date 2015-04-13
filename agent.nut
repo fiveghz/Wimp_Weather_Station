@@ -11,17 +11,17 @@
 // Example incoming serial string from device: 
 // $,winddir=270,windspeedmph=0.0,windgustmph=0.0,windgustdir=0,windspdmph_avg2m=0.0,winddir_avg2m=12,windgustmph_10m=0.0,windgustdir_10m=0,humidity=998.0,tempf=-1766.2,rainin=0.00,dailyrainin=0.00,pressure=-999.00,batt_lvl=16.11,light_lvl=3.32,#
 
-local STATION_ID = "KCOBOULD95";
+local STATION_ID = "KXXXXXXXN";
 local STATION_PW = "password"; //Note that you must only use alphanumerics in your password. Http post won't work otherwise.
 
-local sparkfun_publicKey = "dZ4EVmE8yGCRGx5XRX1W";
-local sparkfun_privateKey = "privatekey";
-
-local LOCAL_ALTITUDE_METERS = 1638; //Accurate for the roof on my house
+local LOCAL_ALTITUDE_METERS = 96; //Accurate for the roof on my house
 
 local midnightReset = false; //Keeps track of a once per day cumulative rain reset
 
-local local_hour_offset = 7; //Mountain time is 7 hours off GMT
+local local_hour_offset = 4; //Mountain time is 7 hours off GMT
+
+local enable_wunderground = 1; //Post data to wunderground. Disable (0) if testing
+local enable_privateDB    = 1; //Post data to private database. Disable (0) if testing
 
 const MAX_PROGRAM_SIZE = 0x20000;
 const ARDUINO_BLOB_SIZE = 128;
@@ -167,7 +167,6 @@ function parse_hexfile(hex) {
     }
     
 }
-
 
 //------------------------------------------------------------------------------------------------------------------------------
 // Handle the agent requests
@@ -346,8 +345,12 @@ device.on("postToInternet", function(dataString) {
     //server.log("string to send: " + bigString);
     
     //Push to Wunderground
-    local request = http.post(bigString, {}, "");
-    local response = request.sendsync();
+    if (enable_wunderground) {
+	    local request = http.post(bigString, {}, "");
+	    local response = request.sendsync();
+    } else {
+    	server.log("Push to Wunderground disabled");
+    }
     server.log("Wunderground response = " + response.body);
     server.log(batt_lvl + " " + light_lvl);
 
@@ -358,12 +361,13 @@ device.on("postToInternet", function(dataString) {
     //Here is a list of datums: measurementTime, winddir, windspeedmph, windgustmph, windgustdir, windspdmph_avg2m, winddir_avg2m, windgustmph_10m, windgustdir_10m, humidity, tempf, rainin, dailyrainin, baromin, dewptf, batt_lvl, light_lvl
 
     //Now we form the large string to pass to sparkfun
-    local strSparkFun = "http://data.sparkfun.com/input/";
-    local privateKey = "private_key=" + sparkfun_privateKey;
+    local privateDbURL = "http://xxxxxxx/input/post.php";
+		local key = "key=xxxxxxxxxxxxxxxxxxxxxxxxxx";
 
-    bigString = strSparkFun;
-    bigString += sparkfun_publicKey;
-    bigString += "?" + privateKey;
+    bigString = privateDbURL;
+    bigString += "?" + strID;
+    bigString += "&" + strPW;
+    bigString += "&" + key;
     bigString += "&" + localMeasurementTime;
     bigString += "&" + winddir;
     bigString += "&" + windspeedmph;
@@ -382,10 +386,16 @@ device.on("postToInternet", function(dataString) {
     bigString += "&" + batt_lvl;
     bigString += "&" + light_lvl;
     
-    //Push to SparkFun
-    local request = http.get(bigString);
-    local response = request.sendsync();
-    server.log("SparkFun response = " + response.body);
+    //server.log("string to send: " + bigString);
+    
+    //Push to private DB
+    if (enable_privateDB) {
+	    local request = http.get(bigString);
+	    local response = request.sendsync();
+	  } else {
+	  	server.log("Push to private DB disabled");
+	  }
+    server.log("Private DB response = " + response.body);
 
     //Check to see if we need to send a midnight reset
     checkMidnight(1);
