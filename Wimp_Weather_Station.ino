@@ -29,7 +29,7 @@
 #include "MPL3115A2.h" //Pressure sensor
 #include "HTU21D.h" //Humidity sensor
 
-//#define ENABLE_LIGHTNING
+#define ENABLE_LIGHTNING
 
 //SoftwareSerial imp(8, 9); // RX, TX into Imp pin 7
 
@@ -647,7 +647,7 @@ void lightning_init()
   AS3935.setOutdoors(); //The weather station is outdoors
 
   AS3935.enableDisturbers(); //We want to know if a man-made event happens
-  AS3935.setNoiseFloor(3); //See table 16 of the AS3935 datasheet. 4-6 works. This was found through experimentation.
+  AS3935.setNoiseFloor(4); //See table 16 of the AS3935 datasheet. This was pre-calibrated by embeddedadventures.
 
   //printAS3935Registers();
 }
@@ -670,7 +670,3 @@ byte SPItransfer(byte sendByte)
   return SPI.transfer(sendByte);
 }
 #endif
-
-
-
-
