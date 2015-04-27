@@ -23,6 +23,8 @@ local local_hour_offset = 4; //Mountain time is 7 hours off GMT
 local enable_wunderground = 1; //Post data to wunderground. Disable (0) if testing
 local enable_privateDB    = 1; //Post data to private database. Disable (0) if testing
 
+const winddircorrection = 0; //Offset from North (0 degrees) of the station's wind direction sensor
+
 const MAX_PROGRAM_SIZE = 0x20000;
 const ARDUINO_BLOB_SIZE = 128;
 program <- null;
@@ -408,9 +410,7 @@ device.on("postToInternet", function(dataString) {
 function windCorrect(direction) {
     temp <- mysplit(direction, '=');
 
-    //My station's North arrow is pointing due west
-    //So correct by 90 degrees
-    local dir = temp[1].tointeger() - 90; 
+    local dir = temp[1].tointeger() - winddircorrection; 
     if(dir < 0) dir += 360;
     return(temp[0] + "=" + dir);
 }
